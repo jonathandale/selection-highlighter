@@ -14,7 +14,7 @@ class SelectionHighlighterView
 
   # Hightlight the selection(s)
   highlightSelection: ->
-    console.log("highlight")
+    console.log("Highlight")
 
     editor = @getActiveEditor()
 
