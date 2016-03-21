@@ -1,8 +1,10 @@
 {CompositeDisposable} = require 'atom'
+_ = require 'underscore-plus'
 
 module.exports =
 class SelectionHighlighterView
   constructor: (serializedState) ->
+    @active = false
     @subscribeToTextEditor()
 
   # Returns an object that can be retrieved when package is activated
@@ -14,30 +16,34 @@ class SelectionHighlighterView
 
   # Hightlight the selection(s)
   highlightSelection: ->
-    console.log("Highlight")
-
     editor = @getActiveEditor()
-
     ranges = editor.getSelectedBufferRanges()
+    lineHeight = editor.getLineHeightInPixels()
+    allRows = [0..editor.getLineCount()]
+    selected = _.flatten _.map ranges, (range) -> range.getRows() unless range.isEmpty()
+    selectedRows = _.reject selected, _.isUndefined
+    nonSelectedRows = if selectedRows.length then _.difference allRows, selectedRows
 
-    for range in ranges
-      console.log(range, range.isEmpty())
-      unless range.isEmpty()
-        console.log("make marker")
-        @el = document.createElement 'div'
-        @el.textContent = " :) "
-        marker = editor.markBufferRange(range)
-        marker.setProperties({foo: true})
-        decoration = editor.decorateMarker(marker, {type: 'overlay', class: 'selection-highlighted', item: @el})
+    if selectedRows
+      for rowNum in selectedRows
+        marker = editor.markBufferRange([[rowNum, 0], [rowNum, 1]])
+        marker.setProperties({rowTinted: true})
+        decoration = editor.decorateMarker(marker, {type: 'line', class: 'selected-line'})
 
+    if nonSelectedRows
+      for rowNum in nonSelectedRows
+        marker = editor.markBufferRange([[rowNum, 0], [rowNum, 1]])
+        marker.setProperties({rowTinted: true})
+        decoration = editor.decorateMarker(marker, {type: 'line', class: 'line-tint-1'})
 
   #Handle a debounced selection change
   handleSelectionChange: =>
-    clearTimeout(@handleSelectionTimeout)
-    @handleSelectionTimeout = setTimeout =>
-      @resetSelection()
-      @highlightSelection()
-    , 100
+    if @active
+      clearTimeout(@handleSelectionTimeout)
+      @handleSelectionTimeout = setTimeout =>
+        @resetSelection()
+        @highlightSelection()
+      , 100
 
   # Subscribe to editor events
   subscribeToTextEditor: ->
@@ -48,12 +54,9 @@ class SelectionHighlighterView
 
   # Reset the selection(s)
   resetSelection: ->
-    console.log("reset")
     # Destroy markers
     editor = @getActiveEditor()
-    console.log(editor.getMarkerCount())
-    for marker in editor.findMarkers({foo: true})
-      console.log('marker: ', marker)
+    for marker in editor.findMarkers({rowTinted: true})
       marker.destroy()
 
   # Tear down any state and detach
@@ -63,7 +66,11 @@ class SelectionHighlighterView
     @subscriptions.dispose()
 
   highlight: ->
+    console.log("active")
+    @active = true
     @highlightSelection()
 
   reset: ->
+    console.log("inactive")
+    @active = false
     @resetSelection()
