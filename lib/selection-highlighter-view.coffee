@@ -38,7 +38,7 @@ class SelectionHighlighterView
 
     if nonSelectedRows
       for rowNum in nonSelectedRows
-        styleRow('line-tint-1')
+        styleRow('line-tint-' + atom.config.get('selection-highlighter.opacityAmount'))
 
   # Handle a debounced selection change
   handleSelectionChange: =>

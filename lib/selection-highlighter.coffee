@@ -6,6 +6,15 @@ module.exports = SelectionHighlighter =
   subscriptions: null
   toggled: false
 
+  config:
+    opacityAmount:
+      title: 'Opacity of non-selected lines'
+      description: 'Choose a value from 0 - 9. 0 is hidden. 9 is almost full opacity.'
+      type: 'integer'
+      default: 2
+      minimum: 0
+      maximum: 9
+
   activate: (state) ->
     console.log("activate")
     @selectionHighlighterView = new SelectionHighlighterView(state.selectionHighlighterViewState)
