@@ -1,15 +1,9 @@
 # Selection Highlighter
 
+Present your code in style by highlighting lines of code and the non-selected code fades away in the background.
 
 ### How it works
 
-1. Upon activation, listens to selection end and highlights selection.
-2. If text already selected, highlight that.
-3. If selection stops, revert to #1.
-
-
-starting steps
-
-- detect selection
-- detect selection events
--
+1. Toggle Selection Highlighter in the current workspace
+2. Select some code and the others fade away to an opacity of your choice
+3. Deselect, escape, or toggle Selection Highlighter to go back to normal

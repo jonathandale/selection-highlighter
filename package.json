@@ -2,7 +2,7 @@
   "name": "selection-highlighter",
   "main": "./lib/selection-highlighter",
   "version": "0.0.1",
-  "description": "A short description of your package",
+  "description": "Highlight code and the non-selected code fades away in the background.",
   "keywords": [
   ],
   "activationCommands": {
