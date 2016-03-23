@@ -21,7 +21,6 @@ module.exports = SelectionHighlighter =
       default: true
 
   activate: (state) ->
-    console.log("activate selection highlighter", state)
     @selectionHighlighterView = new SelectionHighlighterView(state.selectionHighlighterViewState)
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
@@ -36,7 +35,6 @@ module.exports = SelectionHighlighter =
     @toggle()
 
   deactivate: ->
-    console.log("deactivate selection highlighter")
     @subscriptions.dispose()
     @selectionHighlighterView.destroy()
     @destroyIcon

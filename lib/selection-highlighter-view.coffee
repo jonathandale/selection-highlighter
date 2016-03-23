@@ -5,7 +5,12 @@ module.exports =
 class SelectionHighlighterView
   constructor: (serializedState) ->
     @active = false
+    @subscriptions = new CompositeDisposable
     @subscribeToTextEditors()
+
+    # Listen out for new editors within the workspace
+    atom.workspace.onDidAddTextEditor (editor) =>
+      @subscribeToTextEditor(editor.textEditor)
 
   # Get the current text editor
   getActiveEditor: ->
@@ -52,8 +57,10 @@ class SelectionHighlighterView
   # Subscribe to editor events
   subscribeToTextEditors: ->
     for editor in atom.workspace.getTextEditors()
-      @subscriptions = new CompositeDisposable
-      @subscriptions.add editor.onDidChangeSelectionRange @handleSelectionChange
+      @subscribeToTextEditor(editor)
+
+  subscribeToTextEditor: (editor) ->
+    @subscriptions.add editor.onDidChangeSelectionRange @handleSelectionChange
 
   # Reset selections in all editors
   resetAllSelections: ->
