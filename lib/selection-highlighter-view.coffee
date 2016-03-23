@@ -7,12 +7,14 @@ class SelectionHighlighterView
     @active = false
     @subscribeToTextEditor()
 
-  # Returns an object that can be retrieved when package is activated
-  serialize: ->
-
   # Get the current text editor
   getActiveEditor: ->
     atom.workspace.getActiveTextEditor()
+
+  # Get row count, adjusting for when a full line selection
+  getRows: (range) =>
+    rows = range.getRows()
+    if range.end.column is 0 then _.initial rows else rows
 
   # Hightlight the selection(s)
   highlightSelection: ->
@@ -20,35 +22,36 @@ class SelectionHighlighterView
     ranges = editor.getSelectedBufferRanges()
     lineHeight = editor.getLineHeightInPixels()
     allRows = [0..editor.getLineCount()]
-    selected = _.flatten _.map ranges, (range) -> range.getRows() unless range.isEmpty()
-    selectedRows = _.reject selected, _.isUndefined
+    selected = _.flatten _.map ranges, (range) => @getRows(range) unless range.isEmpty()
+    selectedRows = _.reject selected, _.isUndefined # filter out undefineds — empty selections
     nonSelectedRows = if selectedRows.length then _.difference allRows, selectedRows
+
+    # For each row, make new marker and add class
+    styleRow = (classname) ->
+      marker = editor.markBufferRange([[rowNum, 0], [rowNum, 1]])
+      marker.setProperties({sHighlighter: true}) # Give marker a property to tear down later
+      decoration = editor.decorateMarker(marker, {type: 'line', class: classname})
 
     if selectedRows
       for rowNum in selectedRows
-        marker = editor.markBufferRange([[rowNum, 0], [rowNum, 1]])
-        marker.setProperties({rowTinted: true})
-        decoration = editor.decorateMarker(marker, {type: 'line', class: 'selected-line'})
+        styleRow('selected-line')
 
     if nonSelectedRows
       for rowNum in nonSelectedRows
-        marker = editor.markBufferRange([[rowNum, 0], [rowNum, 1]])
-        marker.setProperties({rowTinted: true})
-        decoration = editor.decorateMarker(marker, {type: 'line', class: 'line-tint-1'})
+        styleRow('line-tint-1')
 
-  #Handle a debounced selection change
+  # Handle a debounced selection change
   handleSelectionChange: =>
     if @active
       clearTimeout(@handleSelectionTimeout)
       @handleSelectionTimeout = setTimeout =>
         @resetSelection()
         @highlightSelection()
-      , 100
+      , 150 # Arbitrary time, consider config value?
 
   # Subscribe to editor events
   subscribeToTextEditor: ->
     editor = @getActiveEditor()
-
     @subscriptions = new CompositeDisposable
     @subscriptions.add editor.onDidChangeSelectionRange @handleSelectionChange
 
@@ -56,7 +59,7 @@ class SelectionHighlighterView
   resetSelection: ->
     # Destroy markers
     editor = @getActiveEditor()
-    for marker in editor.findMarkers({rowTinted: true})
+    for marker in editor.findMarkers({sHighlighter: true})
       marker.destroy()
 
   # Tear down any state and detach
