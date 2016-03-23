@@ -5,7 +5,7 @@ module.exports =
 class SelectionHighlighterView
   constructor: (serializedState) ->
     @active = false
-    @subscribeToTextEditor()
+    @subscribeToTextEditors()
 
   # Get the current text editor
   getActiveEditor: ->
@@ -45,35 +45,37 @@ class SelectionHighlighterView
     if @active
       clearTimeout(@handleSelectionTimeout)
       @handleSelectionTimeout = setTimeout =>
-        @resetSelection()
+        @resetSelection(@getActiveEditor())
         @highlightSelection()
       , 150 # Arbitrary time, consider config value?
 
   # Subscribe to editor events
-  subscribeToTextEditor: ->
-    editor = @getActiveEditor()
-    @subscriptions = new CompositeDisposable
-    @subscriptions.add editor.onDidChangeSelectionRange @handleSelectionChange
+  subscribeToTextEditors: ->
+    for editor in atom.workspace.getTextEditors()
+      @subscriptions = new CompositeDisposable
+      @subscriptions.add editor.onDidChangeSelectionRange @handleSelectionChange
+
+  # Reset selections in all editors
+  resetAllSelections: ->
+    for editor in atom.workspace.getTextEditors()
+      @resetSelection(editor)
 
   # Reset the selection(s)
-  resetSelection: ->
+  resetSelection: (editor) ->
     # Destroy markers
-    editor = @getActiveEditor()
     for marker in editor.findMarkers({sHighlighter: true})
       marker.destroy()
 
   # Tear down any state and detach
   destroy: ->
     clearTimeout(@handleSelectionTimeout)
-    @resetSelection()
+    @resetAllSelections()
     @subscriptions.dispose()
 
   highlight: ->
-    console.log("active")
     @active = true
     @highlightSelection()
 
   reset: ->
-    console.log("inactive")
     @active = false
-    @resetSelection()
+    @resetAllSelections()
