@@ -24,26 +24,28 @@ class SelectionHighlighterView
   # Hightlight the selection(s)
   highlightSelection: ->
     editor = @getActiveEditor()
-    ranges = editor.getSelectedBufferRanges()
-    lineHeight = editor.getLineHeightInPixels()
-    allRows = [0..editor.getLineCount()]
-    selected = _.flatten _.map ranges, (range) => @getRows(range) unless range.isEmpty()
-    selectedRows = _.reject selected, _.isUndefined # filter out undefineds — empty selections
-    nonSelectedRows = if selectedRows.length then _.difference allRows, selectedRows
 
-    # For each row, make new marker and add class
-    styleRow = (classname) ->
-      marker = editor.markBufferRange([[rowNum, 0], [rowNum, 1]])
-      marker.setProperties({sHighlighter: true}) # Give marker a property to tear down later
-      decoration = editor.decorateMarker(marker, {type: 'line', class: classname})
+    if editor
+      ranges = editor.getSelectedBufferRanges()
+      lineHeight = editor.getLineHeightInPixels()
+      allRows = [0..editor.getLineCount()]
+      selected = _.flatten _.map ranges, (range) => @getRows(range) unless range.isEmpty()
+      selectedRows = _.reject selected, _.isUndefined # filter out undefineds — empty selections
+      nonSelectedRows = if selectedRows.length then _.difference allRows, selectedRows
 
-    if selectedRows
-      for rowNum in selectedRows
-        styleRow('selected-line')
+      # For each row, make new marker and add class
+      styleRow = (classname) ->
+        marker = editor.markBufferRange([[rowNum, 0], [rowNum, 1]])
+        marker.setProperties({sHighlighter: true}) # Give marker a property to tear down later
+        decoration = editor.decorateMarker(marker, {type: 'line', class: classname})
 
-    if nonSelectedRows
-      for rowNum in nonSelectedRows
-        styleRow('line-tint-' + atom.config.get('selection-highlighter.opacityAmount'))
+      if selectedRows
+        for rowNum in selectedRows
+          styleRow('selected-line')
+
+      if nonSelectedRows
+        for rowNum in nonSelectedRows
+          styleRow('line-tint-' + atom.config.get('selection-highlighter.opacityAmount'))
 
   # Handle a debounced selection change
   handleSelectionChange: =>
