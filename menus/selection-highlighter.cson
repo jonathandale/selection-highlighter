@@ -13,6 +13,14 @@
       'label': 'Selection Highlighter'
       'submenu': [
         {
+          'label': 'Activate'
+          'command': 'selection-highlighter:activate'
+        },
+        {
+          'label': 'Deactivate'
+          'command': 'selection-highlighter:deactivate'
+        },
+        {
           'label': 'Toggle'
           'command': 'selection-highlighter:toggle'
         }

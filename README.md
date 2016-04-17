@@ -7,6 +7,8 @@ Present your code in style by highlighting lines of code and the non-selected co
 ### How it works
 
 1. Toggle Selection Highlighter in the current workspace
+  - Key commands (ctrl + option + S)
+  - Click on the icon in the status bar
 2. Select some code and the others fade away to an opacity of your choice
 3. Deselect, or toggle Selection Highlighter to go back to normal
 

@@ -5,7 +5,6 @@ module.exports = SelectionHighlighter =
   selectionHighlighterView: null
   subscriptions: null
   toggled: false
-  active: false
 
   config:
     opacityAmount:
@@ -16,47 +15,49 @@ module.exports = SelectionHighlighter =
       minimum: 0
       maximum: 9
     showIcon:
-      title: 'Show icon in status bar when active'
+      title: 'Show icon in status bar'
       type: 'boolean'
       default: true
 
   activate: (state) ->
     @selectionHighlighterView = new SelectionHighlighterView(state.selectionHighlighterViewState)
-
-    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
-
-    # Register command that toggles this view
     @subscriptions.add atom.commands.add 'atom-workspace', 'selection-highlighter:toggle': => @toggle()
 
   consumeStatusBar: (statusBar) ->
     @statusBar = statusBar
-    @active = true
-    @toggle()
+    if atom.config.get('selection-highlighter.showIcon')
+      @createIcon()
 
   deactivate: ->
     @subscriptions.dispose()
     @selectionHighlighterView.destroy()
-    @destroyIcon
+    if atom.config.get('selection-highlighter.showIcon')
+      @destroyIcon()
 
-  showIcon: ->
-    el = document.createElement('div')
-    el.classList.add('highlighter-icon')
-    @statusBarTile = @statusBar.addRightTile(item: el, priority: 1000)
+  createIcon: ->
+    @el = document.createElement('a')
+    @el.classList.add('highlighter-icon')
+
+    @el.addEventListener "click", () => @toggle()
+
+    @statusBarTile = @statusBar.addRightTile(item: @el, priority: 1000)
+
+  setIconStatus: (change) ->
+    if atom.config.get('selection-highlighter.showIcon')
+      @icon = document.querySelector('.highlighter-icon')
+      @icon.classList[change]('active')
 
   destroyIcon: ->
     @statusBarTile?.destroy()
     @statusBarTile = null
 
   toggle: ->
-    if @active
-      if @toggled
-        @selectionHighlighterView.reset()
-        @toggled = false
-        if atom.config.get('selection-highlighter.showIcon')
-          @destroyIcon()
-      else
-        @selectionHighlighterView.highlight()
-        @toggled = true
-        if atom.config.get('selection-highlighter.showIcon')
-          @showIcon()
+    if @toggled
+      @setIconStatus('remove')
+      @selectionHighlighterView.reset()
+      @toggled = false
+    else
+      @setIconStatus('add')
+      @selectionHighlighterView.highlight()
+      @toggled = true

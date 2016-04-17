@@ -5,9 +5,6 @@
   "description": "Highlight code and the non-selected code fades away in the background.",
   "keywords": [
   ],
-  "activationCommands": {
-    "atom-workspace": "selection-highlighter:toggle"
-  },
   "repository": "https://github.com/atom/selection-highlighter",
   "license": "MIT",
   "engines": {
